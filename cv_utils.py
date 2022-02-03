@@ -85,7 +85,7 @@ def sort_labels_by_level(bboxs): # returns level sorted labels in a dictionary
     levelheights = {}
     thresh = np.mean(bboxs[:, 3])
     level = 0
-    for i,l in enumerate(bboxs):
+    for i,l in enumerate(np.atleast_2d(bboxs)):
         if abs(l[1]-bboxs[i + 1, 1])  < thresh: # stack current label on current level if they are on the same height
             levellabels[level][i+1] = bboxs[i + 1]
         else:
@@ -112,7 +112,7 @@ def sort_products_by_level(bboxs,levelheights): # returns level sorted products 
 
     for level,heights in levelheights.items():
         bound_low, bound_up = heights
-        for i,b in enumerate(bboxs):
+        for i,b in enumerate(np.atleast_2d(bboxs)):
             if b[1] > bound_up and b[1]+b[3] < bound_low:  # stack current label on current level if they are on the same height
                 if level in levelbboxs:
                     bbox = np.concatenate([b, np.array([None])])
@@ -155,14 +155,17 @@ class Matcher(): # handles matching price labels with products and cropping
             self.stage2(level)
 
     def stage1(self,level):
+        # break if no products in this level
+        if not level in self.levelproducts:
+            return
         # assign all products to label which bound the label on left and right
         for tag,label in self.levellabels[level].items():
             # cordinates label
             lx1,ly1,lx2,ly2 = xywh2xyxy(label)
 
-            for i,product in enumerate(self.levelproducts[level]):
-                # x cordinates product
+            for i,product in enumerate(np.atleast_2d(self.levelproducts[level])):
 
+                # x cordinates product
                 px1,py1,px2,py2,_ = xywh2xyxy(product)
 
                 bounded = (lx1 > px1 and lx2 < px2) or (lx1 < px1 and lx2 > px2)
@@ -177,15 +180,18 @@ class Matcher(): # handles matching price labels with products and cropping
                     self.matches = self.matches.append(match)
 
     def stage2(self,level):
+        # break if no products in this level
+        if not level in self.levelproducts:
+            return
         # assigns all products to label which are not assigned yet but are either left or right bounded with label
         for tag,label in self.levellabels[level].items():
             # x cordinates label
             lx1, ly1,lx2,  ly2 = xywh2xyxy(label)
-            for i,product in enumerate(self.levelproducts[level]):
+            for i,product in enumerate(np.atleast_2d(self.levelproducts[level])):
                 # x cordinates product
                 px1, py1,px2, py2,_ = xywh2xyxy(product)
                 # bounded left or right
-                bounded = (lx1 < px1 and lx2 > px1) or (lx1 > px2 and lx2 > px2)
+                bounded = (lx1 < px2 and lx2 > px2) or (lx1 < px1 and lx2 > px1)
                 assigned = product[4]
                 if assigned==None and bounded:
                     product[4] = tag
@@ -193,6 +199,7 @@ class Matcher(): # handles matching price labels with products and cropping
                     match = pd.DataFrame(data=[{"level":level, "tag":tag, "lx1":lx1,"ly1":ly1,
                                                 "lx2":lx2,"ly2":ly2,"px1":px1,"py1":py1,
                                                 "px2":px2,"py2":py2}])
+
                     self.matches = self.matches.append(match)
 
 
@@ -266,8 +273,11 @@ class Matcher(): # handles matching price labels with products and cropping
             if not os.path.exists(outputdir):
                 os.makedirs(outputdir)
 
+            #save sanity check image
+            cv.imwrite(os.path.join(outputdir, "Sanity_Check_Images", f"{source[0]}.{source[1]}"), self.merge_image)
+            # save crops
             for i,c in enumerate(self.crops):
-                cv.imwrite(os.path.join(outputdir,f"{source}_PRODUCT{i}.jpg"),c)
+                cv.imwrite(os.path.join(outputdir,"crops",f"{source[0]}_PRODUCT{i}.{source[1]}"),c)
 
 
 

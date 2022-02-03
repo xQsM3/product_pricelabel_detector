@@ -6,8 +6,8 @@ import cv2 as cv
 import cv_utils
 
 currentpath = os.path.realpath(__file__)
-sys.path.insert(0,'/home/linx123-rtx/product_pricelabel/yolov5')
-print(sys.path)
+sys.path.insert(0,'./yolov5')
+
 import torch
 from yolov5.models.experimental import attempt_load
 from yolov5.utils.general import check_img_size
