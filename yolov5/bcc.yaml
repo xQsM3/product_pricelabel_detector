@@ -1,0 +1,4 @@
+train: /media/linx123-rtx/Elements/Render/YOLOv5_Custom_Dataset_improved/images/train
+val: /media/linx123-rtx/Elements/Render/YOLOv5_Custom_Dataset_improved/images/val
+nc: 1 
+names: ['bumblebee']
