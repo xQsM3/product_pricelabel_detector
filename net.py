@@ -1,7 +1,6 @@
 import sys
 import os
 import numpy as np
-import cv2 as cv
 
 import cv_utils
 
@@ -10,10 +9,8 @@ sys.path.insert(0,'./yolov5')
 
 import torch
 from yolov5.models.experimental import attempt_load
-from yolov5.utils.general import check_img_size
-from yolov5.utils.datasets import LoadImages,letterbox
+from yolov5.utils.datasets import letterbox
 from yolov5.utils.general import check_img_size, non_max_suppression,scale_coords, xyxy2xywh
-from yolov5.models.yolo import Detect, Model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 import torch
@@ -73,7 +70,10 @@ class YoloNet():
             for *xyxy, conf, cls in reversed(pred):
                 xywh = list(map(int,(xyxy2xywh(torch.tensor(xyxy).view(1, 4))).view(-1).tolist())) # normalized xywh
                 a.append(xywh)
-
+        else:
+            ret = np.empty(5)
+            ret[:] = np.NaN
+            return ret
 
         pred = np.asarray(a)
 
