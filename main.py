@@ -12,14 +12,19 @@ def main(args):
     imgpaths = sorted(glob.glob(os.path.join(args.input_dir, '*.*')))
 
     for imgpath in imgpaths:
+        # store source name
         source = imgpath.split("/")[-1].split(".")
-
+        # load image
         image = cv.imread(imgpath)
 
+        # load model objects
         pricenet = net.YoloNet(weights=args.price_weights, conf=args.price_conf, iou=args.price_iou)
         productnet = net.YoloNet(weights=args.product_weights,conf=args.product_conf,iou=args.product_iou)
+        # detect labels
         labels = pricenet.detect(image)
+        # detect products
         products = productnet.detect(image)
+        # skip img if no labels / products found
         if np.isnan(labels).any():
             warnings.warn("no price labels detected in image {}".format(source[0]))
             continue
@@ -27,6 +32,7 @@ def main(args):
             warnings.warn("no products detected in image {}".format(source[0]))
             continue
 
+        # match labels and products
         matcher = Matcher(image,source,labels,products,args.mode,args.alpha,args.beta)
         matcher.match()
         matcher.merge(visualize=args.visualize,outputdir=args.output_dir)
@@ -38,7 +44,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--price_weights', type=str,default='weights/pricelabelnet.pt',help="path to network weights")
     parser.add_argument('--product_weights', type=str,default='weights/product.pt',help="path to network weights")
-    parser.add_argument('--price_conf', type=float, default=0.4,help="confidence threshold for model") #
+    parser.add_argument('--price_conf', type=float, default=0.1,help="confidence threshold for model") #
     parser.add_argument('--product_conf', type=float, default=0.4,help="confidence threshold for model")
     parser.add_argument('--price_iou', type=float, default=0.45,help="iou thresh for model") #
     parser.add_argument('--product_iou', type=float, default=0.45,help="iou thresh for model")

@@ -12,9 +12,8 @@ sys.path.insert(0,"/home/linx123-rtx/product_pricelabel/yolov5")
 
 
 def main(args):
-    input= "/home/linx123-rtx/yolov5/Datasets/SKU110K/images"
+    input= "/home/linx123-rtx/yolov5/Datasets/SKU110K/custom/images"
     imgpaths = sorted(glob.glob(os.path.join(input, '*.*')))
-
 
     for imgpath in imgpaths:
         print(imgpath)
@@ -89,7 +88,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--price_weights', type=str,default='weights/pricelabelnet.pt') #path to network weights
     parser.add_argument('--product_weights', type=str,default='weights/product.pt') #path to network weights
-    parser.add_argument('--price_conf', type=float, default=0.5) # confidence threshold for model
+    parser.add_argument('--price_conf', type=float, default=0.6) # confidence threshold for model
 
     parser.add_argument('--price_iou', type=float, default=0.001) # iou thresh for model
 

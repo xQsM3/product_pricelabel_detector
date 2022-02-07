@@ -1,21 +1,20 @@
 import sys
 import os
 import numpy as np
+import torch
 
 import cv_utils
 
 currentpath = os.path.realpath(__file__)
 sys.path.insert(0,'./yolov5')
 
-import torch
+
 from yolov5.models.experimental import attempt_load
 from yolov5.utils.datasets import letterbox
 from yolov5.utils.general import check_img_size, non_max_suppression,scale_coords, xyxy2xywh
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-import torch
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class YoloNet():
     def __init__(self,weights,conf,iou):
@@ -28,9 +27,9 @@ class YoloNet():
         self.names = self.model.module.names if hasattr(self.model, 'module') else self.model.names  # get class names
 
         # change weights to FP16
-        if device == "cpu":
+        if device.type == "cpu":
             self.model.cpu()
-        self.half = device != 'cpu'  # half precision only supported on CUDA
+        self.half = device.type != 'cpu'  # half precision only supported on CUDA
 
         if self.half:
             self.model.half()  # to FP16
@@ -41,8 +40,10 @@ class YoloNet():
 
 
     def detect(self,img0):
-        if device != 'cpu':
+
+        if device.type != 'cpu':
             self.model(torch.zeros(1, 3, self.imgsz, self.imgsz).to(device).type_as(next(self.model.parameters())))  # run once
+
         #img0 = cv.imread(im0)
         img = letterbox(img0, self.imgsz, stride=self.stride)[0]
         # Convert
